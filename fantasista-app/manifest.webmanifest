@@ -1,0 +1,40 @@
+{
+  "lang": "ja",
+  "dir": "ltr",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#D3202A",
+  "theme_color": "#D3202A",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "./",
+  "name": "FANTASISTA スタッフ",
+  "short_name": "スタッフ",
+  "description": "来店・予定・入金・会員の管理",
+  "start_url": "./",
+  "scope": "./"
+}

@@ -1,0 +1,33 @@
+GYM FANTASISTA アプリ ― ホーム画面に置くまでの手順（無料）
+
+【1】GitHub のアカウントを作る（無料）
+  https://github.com/signup で登録。
+
+【2】置き場所を作る
+  右上の「＋」→「New repository」
+  名前：fantasista（なんでもOK）／「Public」を選ぶ →「Create repository」
+
+【3】ファイルを入れる
+  「uploading an existing file」を押して、このZIPの中身を全部（icons フォルダごと）ドラッグ
+  →「Commit changes」
+
+【4】アプリのURLを入れる
+  一覧の config.js を開く → 右上の鉛筆マーク
+  'ここにURLを貼る' を、Apps Script の「ウェブアプリのURL（/exec で終わる）」に書きかえる
+  （' ' は消さない）→「Commit changes」
+
+【5】公開する
+  「Settings」→ 左の「Pages」→ Branch を「main」「/(root)」にして「Save」
+  1〜2分で上に https://(ユーザー名).github.io/fantasista/ が出る
+
+【6】iPhone のホーム画面へ
+  ・スタッフ用： https://(ユーザー名).github.io/fantasista/ を Safari で開く
+  ・お客さん用： https://(ユーザー名).github.io/fantasista/yoyaku.html
+  共有ボタン（□↑）→「ホーム画面に追加」→「追加」
+  Android は Chrome で開いて「︙」→「ホーム画面に追加 / アプリをインストール」
+
+【メモ】
+  ・お客さんに送るのは yoyaku.html の方のURL（LINEやInstagramに貼ってOK）
+  ・スタッフ用はホームのアプリで1回だけ合言葉を入れる
+  ・Apps Script を直して「新バージョン」でデプロイしたら、アプリにも自動で反映（GitHubはさわらなくてOK）
+  ・GitHub に置くのは入り口だけ。会員や売上のデータは入っていないので公開でも大丈夫
