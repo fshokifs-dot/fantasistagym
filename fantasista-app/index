@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FANTASISTA スタッフ</title>
+<meta name="theme-color" content="#D3202A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="スタッフ">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<style>
+  html, body { margin:0; height:100%; background:#fff; overscroll-behavior:none; }
+  /* 上の時計の帯だけ赤。そのほかは白（アプリの下のメニューに合わせる） */
+  .shell { position:fixed; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column;
+           background:linear-gradient(#D3202A,#D3202A) top left / 100% env(safe-area-inset-top) no-repeat, #fff;
+           padding-top:env(safe-area-inset-top); }
+  iframe { flex:1; width:100%; border:0; display:block; background:#fff; }
+  /* 起動画面 */
+  #splash { position:fixed; inset:0; z-index:5; background:#D3202A; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; transition:opacity .45s ease, visibility .45s; font-family:-apple-system,'Hiragino Sans',sans-serif; }
+  #splash.hide { opacity:0; visibility:hidden; }
+  #splash .logo { width:min(64vw,300px); background:#fff; border-radius:22px; padding:18px 20px; box-shadow:0 16px 40px rgba(0,0,0,.22); animation:pop .6s cubic-bezier(.2,.9,.3,1.3) both; }
+  #splash .logo img { display:block; width:100%; height:auto; }
+  #splash .sub { color:rgba(255,255,255,.9); font-size:14px; letter-spacing:.08em; }
+  #splash .dots { display:flex; gap:7px; }
+  #splash .dots i { width:7px; height:7px; border-radius:50%; background:#fff; opacity:.4; animation:blink 1s infinite; }
+  #splash .dots i:nth-child(2) { animation-delay:.15s; } #splash .dots i:nth-child(3) { animation-delay:.3s; }
+  #msg { display:none; color:#fff; font-size:14px; line-height:1.7; text-align:center; padding:0 28px; }
+  #msg button { margin-top:14px; border:0; border-radius:12px; padding:12px 22px; font-size:15px; font-weight:700; color:#D3202A; background:#fff; }
+  @keyframes pop { from { transform:scale(.8); opacity:0; } to { transform:none; opacity:1; } }
+  @keyframes blink { 50% { opacity:1; } }
+  @media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="shell"><iframe id="app" title="FANTASISTA スタッフ" allow="clipboard-write"></iframe></div>
+<div id="splash">
+  <div class="logo"><img src="icons/logo.png" alt="FANTASISTA"></div>
+  <div class="sub">スタッフ</div>
+  <div class="dots" id="dots"><i></i><i></i><i></i></div>
+  <div id="msg"></div>
+</div>
+<script src="config.js"></script>
+<script>
+(function () {
+  const splash = document.getElementById('splash'), msg = document.getElementById('msg'), dots = document.getElementById('dots');
+  const fail = (t) => {
+    dots.style.display = 'none';
+    msg.style.display = 'block';
+    msg.innerHTML = t + '<br><button onclick="location.reload()">もう一度読み込む</button>';
+  };
+  if (typeof APP_URL !== 'string' || !/^https:\/\/script\.google\.com\/.+\/exec$/.test(APP_URL)) {
+    fail('config.js に、アプリのURL（/exec で終わるもの）が入っていません。');
+    return;
+  }
+  if (!navigator.onLine) { fail('インターネットにつながっていません。<br>電波のよいところで開き直してください。'); return; }
+  // アプリの合言葉を、この入り口のページに預かる（ホーム画面のアプリでも消えにくい）
+  addEventListener('message', ev => {
+    let host = ''; try { host = new URL(ev.origin).hostname; } catch (e) {}
+    if (!(host === 'script.google.com' || /\.googleusercontent\.com$/.test(host))) return;
+    const d = ev.data;
+    if (!d || d.fs !== 1 || d.k !== 'staffKey' || !ev.source) return;
+    try {
+      if (d.op === 'get') ev.source.postMessage({ fs: 1, id: d.id, v: localStorage.getItem('fs_staffKey') || '' }, ev.origin);
+      else if (d.op === 'set') localStorage.setItem('fs_staffKey', String(d.v || ''));
+      else if (d.op === 'del') localStorage.removeItem('fs_staffKey');
+    } catch (e) { try { ev.source.postMessage({ fs: 1, id: d.id, v: '' }, ev.origin); } catch (_) {} }
+  });
+  const f = document.getElementById('app');
+  const standalone = navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  const fit = () => {
+    if (!standalone) return;
+    const sh = document.querySelector('.shell');
+    sh.style.bottom = '0px';
+    const gap = Math.round(Math.max(screen.width, screen.height) - sh.getBoundingClientRect().bottom);
+    if (window.innerHeight > window.innerWidth && gap > 2 && gap < 120) sh.style.bottom = (-gap) + 'px';
+  };
+  fit(); addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 300));
+  const done = () => splash.classList.add('hide');
+  f.addEventListener('load', () => setTimeout(done, 600));
+  setTimeout(done, 9000);   // 念のため、9秒たったら起動画面を消す
+  f.src = APP_URL;
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
