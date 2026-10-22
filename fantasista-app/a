@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* 色と書体 ─ 赤基調。文字は赤に合う黒、数字はスコアボード風の細長い書体 */
+  :root {
+    --bg:#F4F1F1; --card:#FFFFFF; --ink:#221C1D; --sub:#716A6B; --line:#E6DFDF; --line2:#F0EBEB;
+    --acc:#D3202A; --acc-deep:#A0141C; --acc-soft:#FCE8E9; --red:#D3202A; --red-soft:#FCE8E9;
+    --num:'Barlow Condensed', 'Zen Kaku Gothic New', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:'Zen Kaku Gothic New', -apple-system, 'Hiragino Sans', sans-serif; background:var(--bg); color:var(--ink); padding-bottom:88px; -webkit-font-smoothing:antialiased; }
+  .num { font-family:var(--num); font-variant-numeric:tabular-nums; }
+  button, input, select, textarea { font-family:inherit; }
+  :focus-visible { outline:2px solid var(--acc); outline-offset:2px; }
+
+  header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--acc); color:#fff; position:sticky; top:0; z-index:5; height:56px; }
+  header .ttl { display:flex; align-items:baseline; gap:10px; }
+  header .brand { font-family:var(--num); font-style:italic; font-weight:700; font-size:15px; letter-spacing:.06em; color:rgba(255,255,255,.72); }
+  header #title { font-size:18px; font-weight:700; }
+  header button { font-size:13px; color:rgba(255,255,255,.8); background:none; border:0; padding:6px 2px; }
+
+  .page { display:none; padding:16px; }
+  .page.on { display:block; }
+  .card { background:var(--card); border-radius:18px; padding:16px; margin-bottom:12px; box-shadow:0 1px 0 var(--line); }
+  label { display:block; font-size:13px; font-weight:500; color:var(--sub); margin:12px 0 6px; }
+  select, input, textarea { width:100%; font-size:16px; padding:13px 14px; border:1.5px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); appearance:none; -webkit-appearance:none; }
+  select { background-image:linear-gradient(45deg,transparent 50%,var(--sub) 50%),linear-gradient(135deg,var(--sub) 50%,transparent 50%); background-position:calc(100% - 20px) 55%,calc(100% - 15px) 55%; background-size:5px 5px; background-repeat:no-repeat; padding-right:36px; }
+  select:focus, input:focus, textarea:focus { border-color:var(--acc); outline:none; }
+  textarea { min-height:110px; line-height:1.6; }
+  button.main { width:100%; margin-top:16px; padding:16px; font-size:16px; font-weight:700; color:#fff; background:var(--acc); border:0; border-radius:14px; box-shadow:0 3px 0 var(--acc-deep); }
+  button.main:active { transform:translateY(2px); box-shadow:0 1px 0 var(--acc-deep); }
+  button.main:disabled { opacity:.5; }
+  .ghost { width:100%; padding:13px; border:1.5px solid var(--line); background:#fff; border-radius:12px; font-size:15px; font-weight:500; color:var(--ink); }
+
+  nav { position:fixed; bottom:0; left:0; right:0; display:flex; background:#fff; border-top:1px solid var(--line); padding-bottom:env(safe-area-inset-bottom); z-index:6; }
+  nav button { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:9px 0 10px; font-size:11px; font-weight:500; background:none; border:0; color:var(--sub); position:relative; }
+  nav button svg { width:23px; height:23px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  nav button.on { color:var(--acc); font-weight:700; }
+  nav button.on::before { content:""; position:absolute; top:-1px; left:28%; right:28%; height:3px; border-radius:0 0 3px 3px; background:var(--acc); }
+
+  .big { font-family:var(--num); font-size:48px; font-weight:700; line-height:1.05; letter-spacing:.01em; }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 0; border-bottom:1px solid var(--line2); font-size:15px; }
+  .row:last-child { border-bottom:0; }
+  .row b.num { font-size:20px; font-weight:600; }
+  .sub { color:var(--sub); font-size:13px; }
+  .low { color:var(--red); font-weight:700; }
+  .acts { display:flex; gap:8px; margin-top:14px; }
+  .acts button { flex:1; padding:13px; font-size:15px; font-weight:700; border-radius:12px; border:0; background:var(--acc); color:#fff; }
+  .acts button:disabled { background:var(--line); color:var(--sub); }
+  .acts button.del { color:var(--red); background:var(--red-soft); flex:0 0 84px; }
+  .daybar { display:flex; gap:8px; align-items:center; }
+  .daybar button { width:48px; height:48px; flex:0 0 48px; font-size:15px; border:1.5px solid var(--line); background:#fff; border-radius:12px; color:var(--ink); }
+  .daybar input { flex:1; font-family:var(--num); font-size:18px; font-weight:600; }
+  .gtitle { margin:18px 4px 8px; font-weight:700; font-size:15px; display:flex; align-items:baseline; gap:8px; }
+  .gtitle .sub { font-weight:400; }
+  .mcard { display:flex; justify-content:space-between; align-items:center; background:#fff; border-radius:14px; padding:14px 16px; margin-bottom:8px; box-shadow:0 1px 0 var(--line); cursor:pointer; }
+  .mcard .left { font-family:var(--num); font-size:18px; font-weight:600; }
+  .mcard .left small { font-family:'Zen Kaku Gothic New', sans-serif; font-size:12px; color:var(--sub); font-weight:400; margin-left:2px; }
+  .mcard .left.low { color:var(--red); }
+
+  /* 来店入力：種目の行 */
+  .exhead { display:flex; justify-content:space-between; align-items:center; margin:20px 0 8px; }
+  .exhead b { font-size:15px; }
+  .copyprev { border:0; background:var(--acc-soft); color:var(--acc); font-size:13px; font-weight:700; padding:8px 12px; border-radius:10px; }
+  .copyprev:disabled { background:var(--bg); color:#CFC3C4; }
+  .ex { border:1.5px solid var(--line); border-radius:14px; padding:10px; margin-bottom:8px; background:#FAFBFC; }
+  .ex input { padding:11px 12px; background:#fff; }
+  .ex-top { display:flex; gap:8px; align-items:center; }
+  .ex-top input { flex:1; min-width:0; }
+  .ex-no { flex:0 0 26px; height:26px; border-radius:50%; background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; }
+  .ex-del { flex:0 0 38px; height:38px; border:0; border-radius:10px; background:var(--red-soft); color:var(--red); font-size:18px; }
+  .ex-grid { display:grid; grid-template-columns:1.25fr 1fr 1fr; gap:6px; margin-top:8px; }
+  .ex-grid div { position:relative; }
+  .ex-grid input { padding:11px 30px 11px 8px; font-family:var(--num); font-size:20px; font-weight:600; text-align:right; }
+  .ex-grid .u-set input { padding-right:40px; }
+  .ex-grid .u-rep input { padding-right:22px; }
+  .ex-grid span { position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--sub); pointer-events:none; }
+  .ex .ex-note { margin-top:6px; font-size:14px; }
+  .addrow { width:100%; padding:13px; border:1.5px dashed #DDB9BB; background:none; border-radius:14px; color:var(--acc); font-weight:700; font-size:15px; }
+  .stepper { display:flex; gap:8px; align-items:center; }
+  .stepper button { flex:0 0 52px; height:52px; border:0; border-radius:12px; background:var(--acc-soft); color:var(--acc); font-size:24px; font-weight:700; }
+  .stepper input { flex:1; text-align:center; font-size:28px; font-weight:700; padding:8px; }
+  .tagsg { display:inline-block; font-size:11px; font-weight:700; color:var(--acc); background:var(--acc-soft); border-radius:6px; padding:1px 7px; margin-left:6px; vertical-align:2px; }
+  .amt-g { margin-top:14px; }
+  .amt-h { display:flex; align-items:baseline; gap:8px; padding-bottom:6px; border-bottom:2px solid var(--ink); }
+  .amt-h b { font-family:var(--num); font-size:24px; font-weight:700; }
+  .amt-h .sub { margin-left:auto; }
+  /* 来店の記録カード */
+  .vcard { background:#fff; border-radius:16px; padding:14px 16px; margin-bottom:10px; box-shadow:0 1px 0 var(--line); }
+  .vhead { display:flex; align-items:baseline; gap:10px; }
+  .vhead .vdate { font-size:19px; font-weight:600; }
+  .vhead .sub { margin-left:auto; }
+  .vt { width:100%; border-collapse:collapse; margin-top:8px; font-size:14px; }
+  .vt th { font-size:11px; font-weight:500; color:var(--sub); text-align:right; padding:4px; border-bottom:1px solid var(--line); }
+  .vt td { padding:7px 4px; border-bottom:1px solid var(--line2); text-align:right; vertical-align:top; }
+  .vt th:first-child, .vt td:first-child { text-align:left; padding-left:0; }
+  .vt td.num { font-size:17px; font-weight:600; white-space:nowrap; }
+  .vt tr:last-child td { border-bottom:0; }
+  .vnote { font-size:12px; color:var(--sub); margin-top:2px; }
+  .editbar { background:var(--acc); color:#fff; border-radius:14px; padding:12px 16px; margin-bottom:12px; font-size:14px; font-weight:500; }
+  .editbar b { font-weight:700; }
+  .vmemo { margin-top:8px; padding:9px 11px; background:var(--bg); border-radius:10px; font-size:13px; line-height:1.6; white-space:pre-wrap; }
+
+  /* 予定：切り替えと見出し */
+  .ctl { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
+  .seg { flex:1; display:flex; background:#E6DEDE; border-radius:12px; padding:3px; }
+  .seg button { flex:1; border:0; background:none; padding:10px 0; font-size:15px; font-weight:500; border-radius:10px; color:var(--sub); }
+  .seg button.on { background:#fff; color:var(--ink); font-weight:700; box-shadow:0 1px 2px rgba(34,28,29,.14); }
+  .ctl .today { padding:12px 18px; border:1.5px solid var(--line); background:#fff; border-radius:12px; font-size:14px; font-weight:700; color:var(--acc); }
+  .rng { font-family:var(--num); font-size:30px; font-weight:700; margin:16px 2px 2px; letter-spacing:.01em; }
+  .legend { display:flex; flex-wrap:wrap; gap:6px 12px; margin:8px 2px 0; font-size:12px; color:var(--sub); }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
+
+  /* 予定のブロック（日・週 共通） */
+  .blk { position:absolute; border-radius:7px; padding:3px 6px; font-size:12px; line-height:1.3; overflow:hidden; color:#fff; cursor:pointer; box-shadow:0 0 0 1.5px #fff; z-index:1; }
+  .blk b { font-size:13px; font-weight:700; }
+  .blk .t { font-family:var(--num); font-size:13px; font-weight:600; }
+  .blk.done { opacity:.42; }
+  .blk .tag { display:inline-block; font-size:10px; padding:0 5px; border-radius:4px; background:rgba(255,255,255,.28); margin-left:4px; vertical-align:1px; }
+  /* 空いている枠の「＋」 */
+  .slot { position:absolute; left:0; right:0; display:flex; align-items:center; justify-content:center; color:#D7C6C7; font-size:18px; font-weight:300; pointer-events:none; }
+
+  /* 日の表示 */
+  .tl { position:relative; margin:16px 0 16px 52px; border-left:1.5px solid var(--line); cursor:pointer; -webkit-tap-highlight-color:transparent; background:#fff; border-radius:0 12px 12px 0; }
+  .tl .line { position:absolute; left:0; right:0; border-top:1px solid var(--line2); }
+  .tl .half { position:absolute; left:0; right:0; border-top:1px dashed var(--line2); }
+  .tl .hr { position:absolute; left:-52px; width:44px; text-align:right; font-family:var(--num); font-size:15px; font-weight:600; color:var(--ink); transform:translateY(-9px); line-height:1.1; }
+  .tl .hr .cnt { font-size:12px; font-weight:500; color:var(--sub); }
+  .tl .hr .full { color:var(--red); font-weight:700; }
+  .tl .fullbg { position:absolute; left:0; right:0; background:var(--red-soft); }
+  .tl .slot { justify-content:flex-end; padding-right:14px; font-size:13px; font-weight:500; }
+
+  /* 週の表示 */
+  .wk { margin:12px -16px 16px; background:#fff; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .wk-head { display:flex; position:sticky; top:56px; z-index:3; background:#fff; border-bottom:1px solid var(--line); }
+  .wk-gut { flex:0 0 40px; }
+  .wd { flex:1; min-width:0; text-align:center; padding:6px 0 8px; cursor:pointer; }
+  .wd span { display:block; font-size:11px; font-weight:500; color:var(--sub); }
+  .wd b { display:inline-block; font-family:var(--num); font-size:22px; font-weight:600; width:36px; height:36px; line-height:36px; border-radius:50%; }
+  .wd.sat span { color:#2F6FD6; } .wd.sun span { color:var(--acc); }
+  .wd.today b { background:var(--acc); color:#fff; font-weight:700; }
+  .wk-body { position:relative; margin-left:40px; border-left:1px solid var(--line); }
+  .wk-hr { position:absolute; left:-40px; width:34px; text-align:right; font-family:var(--num); font-size:13px; font-weight:600; color:var(--sub); transform:translateY(-8px); }
+  .wk-line { position:absolute; left:0; right:0; border-top:1px solid var(--line2); }
+  .wk-cols { position:absolute; top:0; bottom:0; left:0; right:0; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .wk-col { position:absolute; top:0; bottom:0; border-right:1px solid var(--line2); }
+  .wk-col .fullbg { position:absolute; left:0; right:0; background:repeating-linear-gradient(135deg,#FBE3E4,#FBE3E4 5px,#F7D3D5 5px,#F7D3D5 10px); }
+  .wk .blk { padding:2px 3px; font-size:10px; line-height:1.25; word-break:break-all; border-radius:5px; }
+  .wk .blk b { font-size:11px; }
+  .wk .blk.v { padding:3px 0; text-align:center; line-height:1.15; }
+  .wk .blk.v b { font-size:11px; }
+
+  /* 下から出るパネル */
+  #dim { display:none; position:fixed; inset:0; background:rgba(34,28,29,.38); z-index:7; }
+  .bsheet { display:none; position:fixed; left:0; right:0; bottom:0; max-height:88vh; overflow:auto; background:#fff; border-radius:22px 22px 0 0; padding:10px 18px calc(18px + env(safe-area-inset-bottom)); z-index:8; box-shadow:0 -10px 30px rgba(34,28,29,.18); animation:up .22s ease-out; }
+  .bsheet::before { content:""; display:block; width:40px; height:4px; border-radius:2px; background:var(--line); margin:0 auto 12px; }
+  @keyframes up { from { transform:translateY(24px); opacity:.6; } to { transform:none; opacity:1; } }
+  @media (prefers-reduced-motion: reduce) { .bsheet { animation:none; } }
+  .bhead { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .bhead b { font-size:19px; }
+  .bhead button { border:0; background:var(--bg); border-radius:50%; width:36px; height:36px; font-size:18px; color:var(--sub); flex:0 0 36px; }
+  .two { display:flex; gap:8px; } .two > div { flex:1; min-width:0; }
+  .pk-list { max-height:36vh; overflow:auto; margin-top:8px; border:1.5px solid var(--line); border-radius:14px; }
+  .pk-item { display:flex; justify-content:space-between; align-items:center; gap:8px; width:100%; padding:14px; border:0; border-bottom:1px solid var(--line2); background:#fff; font-size:16px; text-align:left; color:var(--ink); }
+  .pk-item:last-child { border-bottom:0; }
+  .pk-item:active { background:var(--acc-soft); }
+  .pk-item .sub { flex:0 0 auto; }
+  .pk-new { display:flex; gap:8px; margin-top:10px; }
+  .pk-new button { flex:0 0 80px; border:0; background:var(--acc-soft); color:var(--acc); font-weight:700; border-radius:12px; font-size:15px; }
+  .capline { margin-top:10px; font-size:13px; padding:8px 12px; border-radius:10px; background:var(--bg); color:var(--sub); }
+  .capline:empty { display:none; }
+  .capline.full { color:var(--red); background:var(--red-soft); font-weight:700; }
+
+  #login { display:none; position:fixed; inset:0; background:var(--acc); z-index:20; padding:72px 20px; overflow:auto; }
+  #login .brandbig { font-family:var(--num); font-style:italic; font-weight:700; font-size:44px; line-height:1; color:#fff; letter-spacing:.02em; margin-bottom:6px; }
+  #login .lead { color:rgba(255,255,255,.82); font-size:14px; margin-bottom:24px; }
+  /* ---------- 仕上げ：動き・メニュー・トースト・引っぱって更新・スワイプ・グラフ ---------- */
+  html, body { overscroll-behavior-y:contain; }
+  /* 画面の切り替え */
+  .page.on { animation:pageIn .28s cubic-bezier(.2,.8,.2,1); }
+  @keyframes pageIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+  /* 押した感触 */
+  button { transition:transform .12s ease, box-shadow .12s ease, background-color .2s ease; -webkit-tap-highlight-color:transparent; }
+  button:active:not(:disabled) { transform:scale(.96); }
+  .mcard, .blk { transition:transform .12s ease, filter .12s ease; }
+  .mcard:active, .blk:active { transform:scale(.98); filter:brightness(.95); }
+  /* 下から出るパネルの背景 */
+  #dim { transition:opacity .2s; }
+
+  /* ヘッダー：ハンバーガーと更新 */
+  header .ttl { flex:1; min-width:0; }
+  .hbtn { width:40px; height:40px; flex:0 0 40px; border:0; border-radius:12px; background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center; padding:0; }
+  .hbtn svg { width:22px; height:22px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; }
+  .hamb { margin-right:12px; flex-direction:column; gap:4px; }
+  .hamb i { display:block; width:18px; height:2px; border-radius:2px; background:#fff; transition:transform .25s, opacity .2s; }
+  body.drawer-open .hamb i:nth-child(1) { transform:translateY(6px) rotate(45deg); }
+  body.drawer-open .hamb i:nth-child(2) { opacity:0; }
+  body.drawer-open .hamb i:nth-child(3) { transform:translateY(-6px) rotate(-45deg); }
+  .hbtn.spin svg { animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* 横から出るメニュー */
+  #ddim { position:fixed; inset:0; background:rgba(34,28,29,.42); z-index:11; opacity:0; pointer-events:none; transition:opacity .25s; }
+  body.drawer-open #ddim { opacity:1; pointer-events:auto; }
+  #drawer { position:fixed; top:0; bottom:0; left:0; width:min(84vw,320px); background:#fff; z-index:12; transform:translateX(-104%); transition:transform .3s cubic-bezier(.2,.8,.2,1); display:flex; flex-direction:column; box-shadow:8px 0 30px rgba(34,28,29,.2); }
+  body.drawer-open #drawer { transform:none; }
+  .dr-head { background:var(--acc); color:#fff; padding:28px 20px 20px; }
+  .dr-head .b { font-family:var(--num); font-style:italic; font-weight:700; font-size:26px; line-height:1; }
+  .dr-head .s { font-size:13px; opacity:.82; margin-top:6px; }
+  .dr-body { flex:1; overflow:auto; padding:10px 10px calc(16px + env(safe-area-inset-bottom)); }
+  .dr-item { display:flex; align-items:center; gap:14px; width:100%; padding:13px 12px; border:0; background:none; border-radius:12px; font-size:16px; font-weight:500; color:var(--ink); text-align:left; }
+  .dr-item svg { width:22px; height:22px; stroke:var(--sub); fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex:0 0 22px; }
+  .dr-item.on { background:var(--acc-soft); color:var(--acc); font-weight:700; }
+  .dr-item.on svg { stroke:var(--acc); }
+  .dr-sep { height:1px; background:var(--line); margin:10px 12px; }
+  .dr-cap { font-size:12px; color:var(--sub); padding:6px 12px 2px; }
+  .dr-url { margin:6px 12px 2px; font-size:12px; padding:10px; background:var(--bg); border:0; border-radius:10px; color:var(--sub); }
+  .dr-item.out { color:var(--acc); }
+  .dr-item.out svg { stroke:var(--acc); }
+
+  /* トースト */
+  #toast { position:fixed; left:16px; right:16px; bottom:96px; margin:0 auto; max-width:440px; display:flex; align-items:center; gap:10px; background:var(--ink); color:#fff; padding:11px 12px 11px 14px; border-radius:16px; font-size:14px; z-index:30; box-shadow:0 10px 26px rgba(34,28,29,.28);
+    opacity:0; pointer-events:none; transform:translateY(16px) scale(.98); transition:opacity .22s, transform .3s cubic-bezier(.2,.9,.25,1.2); }
+  #toast.show { opacity:1; pointer-events:auto; transform:none; }
+  #toast .ic { flex:0 0 24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; background:#2E9E5B; }
+  #toast.err .ic { background:var(--acc); }
+  #toast .tx { flex:1; line-height:1.45; }
+  #toast .act { flex:0 0 auto; border:0; background:rgba(255,255,255,.16); color:#fff; font-weight:700; font-size:13px; padding:8px 12px; border-radius:10px; }
+  #toast .act:empty { display:none; }
+
+  /* 引っぱって更新 */
+  #ptr { position:fixed; top:64px; left:50%; width:42px; height:42px; margin-left:-21px; border-radius:50%; background:#fff; box-shadow:0 4px 14px rgba(34,28,29,.2); display:flex; align-items:center; justify-content:center; z-index:4; transform:translateY(-90px); opacity:0; pointer-events:none; }
+  #ptr svg { width:22px; height:22px; stroke:var(--acc); fill:none; stroke-width:2.2; stroke-linecap:round; }
+  #ptr.back { transition:transform .25s, opacity .25s; }
+  #ptr.ready svg { stroke:var(--acc-deep); }
+  #ptr.loading svg { animation:spin .8s linear infinite; }
+
+  /* スワイプ */
+  .sw { position:relative; overflow:hidden; border-radius:16px; margin-bottom:10px; background:var(--ink); }
+  .sw.m { border-radius:14px; margin-bottom:8px; }
+  .sw-acts { position:absolute; top:0; right:0; bottom:0; display:flex; }
+  .sw-acts button { width:76px; border:0; border-radius:0; color:#fff; font-size:13px; font-weight:700; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+  .sw-acts button svg { width:20px; height:20px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .sw-acts .a-edit { background:#4A4344; }
+  .sw-acts .a-go { background:#1E5AA8; }
+  .sw-acts .a-del { background:var(--acc); }
+  .sw-front { position:relative; z-index:1; touch-action:pan-y; will-change:transform; }
+  .sw-front.anim { transition:transform .28s cubic-bezier(.2,.8,.2,1); }
+  .sw .vcard, .sw .mcard { margin-bottom:0; }
+  .swhint { font-size:12px; color:var(--sub); font-weight:400; margin-left:auto; }
+
+  /* 売上のグラフ */
+  .chart-h { display:flex; align-items:baseline; gap:8px; }
+  .chart-h .sub { margin-left:auto; }
+  .bars { display:flex; align-items:flex-end; gap:10px; height:168px; padding:26px 2px 0; margin-top:6px; border-bottom:1.5px solid var(--line); }
+  .bar { flex:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; position:relative; cursor:pointer; }
+  .bar i { display:block; width:100%; max-width:40px; min-height:2px; border-radius:4px 4px 0 0; background:#F1C3C6; transform-origin:bottom; animation:grow .8s cubic-bezier(.2,.8,.2,1) both; }
+  .bar.cur i { background:var(--acc); }
+  .bar .val { position:absolute; left:50%; transform:translate(-50%, -6px); white-space:nowrap; font-family:var(--num); font-size:15px; font-weight:600; color:var(--ink); opacity:0; transition:opacity .2s; pointer-events:none; }
+  .bar.cur .val, .bar.tip .val { opacity:1; }
+  .bar.tip i { background:var(--acc-deep); }
+  .bars-x { display:flex; gap:10px; padding:6px 2px 0; }
+  .bars-x span { flex:1; text-align:center; font-family:var(--num); font-size:14px; font-weight:600; color:var(--sub); }
+  .bars-x span.cur { color:var(--acc); }
+  @keyframes grow { from { transform:scaleY(0); } to { transform:scaleY(1); } }
+  .hb { margin-top:12px; }
+  .hb-top { display:flex; justify-content:space-between; align-items:baseline; font-size:14px; }
+  .hb-top b { font-family:var(--num); font-size:18px; font-weight:600; }
+  .hb-track { height:8px; border-radius:4px; background:var(--line2); margin-top:5px; overflow:hidden; }
+  .hb-track i { display:block; height:100%; border-radius:4px; background:var(--acc); transform-origin:left; animation:growx .8s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes growx { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+  .bar:nth-child(2) i, .hb:nth-child(2) .hb-track i { animation-delay:.05s; }
+  .bar:nth-child(3) i, .hb:nth-child(3) .hb-track i { animation-delay:.1s; }
+  .bar:nth-child(4) i, .hb:nth-child(4) .hb-track i { animation-delay:.15s; }
+  .bar:nth-child(5) i, .hb:nth-child(5) .hb-track i { animation-delay:.2s; }
+  .bar:nth-child(6) i, .hb:nth-child(6) .hb-track i { animation-delay:.25s; }
+
+  /* 動きを減らす設定の人には、アニメーションを止める */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <button class="hbtn hamb" onclick="toggleDrawer()" aria-label="メニュー"><i></i><i></i><i></i></button>
+  <div class="ttl"><span class="brand" id="brand"></span><span id="title">来店入力</span></div>
+  <button class="hbtn" id="refresh-btn" onclick="refreshAll()" aria-label="最新にする"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg></button>
+</header>
+<div id="ptr"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg></div>
+
+<div class="page on" id="p-visit">
+  <div class="editbar" id="v-editing" style="display:none"></div>
+  <div class="card">
+    <label>日付</label><input type="date" id="v-date">
+    <label>会員</label><select id="v-member" onchange="memberPicked()"></select>
+    <input id="v-single" placeholder="お名前（単発の方）" style="display:none;margin-top:8px">
+    <label>担当トレーナー</label><select id="v-trainer"></select>
+    <div class="exhead"><b>トレーニング内容</b><button class="copyprev" id="v-copy" onclick="copyPrev()" disabled>前回の内容を写す</button></div>
+    <div id="ex-list"></div>
+    <button class="addrow" onclick="addRow()">＋ 種目を追加</button>
+    <label>メモ（体調・気づいたことなど）</label><textarea id="v-note" placeholder="例 腰の張りあり。次回はフォーム確認から"></textarea>
+    <datalist id="ex-names"></datalist>
+    <button class="main" id="v-btn" onclick="sendVisit()">記録する（残り回数 −1）</button>
+    <button class="ghost" id="v-cancel" style="display:none;margin-top:10px" onclick="cancelEdit()">編集をやめる</button>
+  </div>
+  <div class="gtitle" id="v-histtitle">最近の記録</div>
+  <div id="v-list"></div>
+</div>
+
+<div class="page" id="p-sched">
+  <div class="ctl">
+    <div class="seg"><button id="m-day" onclick="setMode('day')">日</button><button id="m-week" onclick="setMode('week')">週</button></div>
+    <button class="today" onclick="goToday()">今日</button>
+  </div>
+  <div class="daybar">
+    <button onclick="shiftDay(-1)">◀</button>
+    <input type="date" id="s-date" onchange="loadSched()">
+    <button onclick="shiftDay(1)">▶</button>
+  </div>
+  <label>担当で絞る</label><select id="sf-trainer" onchange="renderSched()"></select>
+  <div class="legend" id="legend"></div>
+  <div class="rng" id="s-range"></div>
+  <div class="row" style="border:0;padding-top:0"><span class="sub" id="s-count"></span><span class="sub">＋の枠を押すと予定を入れられます</span></div>
+  <div id="s-list"></div>
+</div>
+
+<div class="page" id="p-pay">
+  <div class="card">
+    <label>日付</label><input type="date" id="p-date">
+    <label>会員</label><select id="p-member" onchange="payMemberPicked()"></select>
+    <input id="p-single" placeholder="お名前（単発の方）" style="display:none;margin-top:8px">
+    <label>担当トレーナー</label><select id="p-trainer"></select>
+    <label>金額（円）</label><input type="number" inputmode="numeric" id="p-amount" placeholder="例 11000">
+    <div id="p-sessions-row"><label>追加する回数（回数券の場合）</label><input type="number" inputmode="numeric" id="p-sessions" placeholder="なければ空欄"></div>
+    <label>メモ</label><input id="p-memo" placeholder="現金・カードなど">
+    <button class="main" id="p-btn" onclick="sendPay()">入金を記録する</button>
+  </div>
+</div>
+
+<div class="page" id="p-sales">
+  <div class="card" id="s-lock">
+    <b>売上は暗証番号が必要です</b>
+    <label>暗証番号</label><input type="password" inputmode="numeric" id="s-pin" autocomplete="off">
+    <button class="main" id="s-btn" onclick="unlockSales()">開く</button>
+    <div class="sub" id="s-msg" style="margin-top:10px"></div>
+  </div>
+  <div id="s-body" style="display:none">
+    <div class="card" style="background:var(--acc-deep);color:#fff"><div class="sub" style="color:rgba(255,255,255,.75)">今月の売上　<span class="num" id="s-month" style="font-size:15px"></span></div><div class="big" id="s-this" style="margin-top:4px"></div><div class="sub" id="s-diff" style="color:rgba(255,255,255,.8);margin-top:4px"></div></div>
+    <div class="card"><div class="chart-h"><b>月別の売上</b><span class="sub">直近6か月・棒を押すと金額</span></div><div class="bars" id="s-bars"></div><div class="bars-x" id="s-barsx"></div></div>
+    <div class="card"><b>コース別（今月）</b><div id="s-cm"></div></div>
+    <div class="card"><b>コース別（これまでの合計）</b><div id="s-ca"></div></div>
+    <div class="card"><b>金額別の会員</b><div class="sub" style="margin-top:4px">いちばん最近の入金額でまとめています。右は、これまでの合計です。</div><div id="s-amt"></div></div>
+    <div class="card"><b>月別</b><div id="s-mo"></div></div>
+    <button class="ghost" onclick="lockSales()">ロックする</button>
+  </div>
+</div>
+
+<div class="page" id="p-mem">
+  <input id="m-search" placeholder="🔍 名前で検索" oninput="renderMembers()" autocomplete="off">
+  <div id="m-list"></div>
+  <div class="card" style="margin-top:12px">
+    <b>会員を追加</b>
+    <label>名前</label><input id="m-name">
+    <label>コース</label><input id="m-plan" list="course-list" placeholder="例 月4回コース"><datalist id="course-list"></datalist>
+    <label>残り回数</label><input type="number" inputmode="numeric" id="m-left">
+    <button class="main" id="m-btn" onclick="sendMember()">追加する</button>
+  </div>
+</div>
+
+<div class="page" id="p-hist">
+  <button onclick="closeHistory()" style="border:0;background:none;color:var(--acc);font-size:16px;padding:4px 0 12px">← 会員一覧にもどる</button>
+  <div class="card"><div class="big" style="font-size:22px" id="h-name"></div><div class="sub" id="h-sub"></div></div>
+  <div class="card">
+    <b>会員情報を直す</b>
+    <label>コース</label><input id="h-plan" list="course-list" placeholder="例 月4回コース">
+    <label>残り回数</label>
+    <div class="stepper"><button onclick="stepLeft(-1)" aria-label="1回へらす">−</button><input id="h-left" class="num" type="number" inputmode="numeric" min="0"><button onclick="stepLeft(1)" aria-label="1回ふやす">＋</button></div>
+    <button class="main" id="h-save" onclick="saveMember()">会員情報を保存</button>
+  </div>
+  <div class="gtitle">来店の記録<span class="swhint">← スワイプで編集・削除</span></div>
+  <div id="h-list"></div>
+  <button class="ghost" onclick="deleteMember()" style="margin-top:8px;color:var(--red)">この会員を削除</button>
+</div>
+
+<nav>
+  <button class="on" id="nav-visit" onclick="go('visit',this)"><svg viewBox="0 0 24 24"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>来店</button>
+  <button onclick="go('sched',this)"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>予定</button>
+  <button onclick="go('pay',this)"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="13" rx="3"/><path d="M2.5 10.5h19M6.5 15h4"/></svg>入金</button>
+  <button onclick="go('sales',this)"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg>売上</button>
+  <button id="nav-mem" onclick="go('mem',this)"><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 5.2a3.4 3.4 0 0 1 0 6.6M18.5 14.8c1.6.8 2.6 2.5 3 5.2"/></svg>会員</button>
+</nav>
+
+<div id="dim" onclick="closeAll()"></div>
+
+<!-- ハンバーガーメニュー -->
+<div id="ddim" onclick="closeDrawer()"></div>
+<aside id="drawer" aria-label="メニュー">
+  <div class="dr-head"><div class="b" id="dr-brand">STAFF</div><div class="s">スタッフ用の画面</div></div>
+  <div class="dr-body">
+    <button class="dr-item" data-p="visit" onclick="drawerGo('visit')"><svg viewBox="0 0 24 24"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>来店入力</button>
+    <button class="dr-item" data-p="sched" onclick="drawerGo('sched')"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>予定</button>
+    <button class="dr-item" data-p="pay" onclick="drawerGo('pay')"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="13" rx="3"/><path d="M2.5 10.5h19M6.5 15h4"/></svg>入金</button>
+    <button class="dr-item" data-p="sales" onclick="drawerGo('sales')"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg>売上</button>
+    <button class="dr-item" data-p="mem" onclick="drawerGo('mem')"><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 5.2a3.4 3.4 0 0 1 0 6.6M18.5 14.8c1.6.8 2.6 2.5 3 5.2"/></svg>会員</button>
+    <div class="dr-sep"></div>
+    <div id="bookurl-card" style="display:none">
+      <div class="dr-cap">お客さん用の予約ページ</div>
+      <button class="dr-item" onclick="openBookPage()"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>予約ページを開く</button>
+      <button class="dr-item" onclick="copyUrl()"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>URLをコピー</button>
+      <input class="dr-url" id="bookurl" readonly onclick="this.select()">
+      <div class="dr-sep"></div>
+    </div>
+    <button class="dr-item" onclick="closeDrawer();refreshAll()"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>最新の情報にする</button>
+    <button class="dr-item out" onclick="closeDrawer();logout()"><svg viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></svg>ログアウト</button>
+  </div>
+</aside>
+
+<!-- 予定の中身 -->
+<div class="bsheet" id="sheet">
+  <div class="bhead"><b id="sh-title"></b><button onclick="closeAll()">×</button></div>
+  <div id="sh-body" style="margin-top:6px"></div>
+  <div id="sh-trow"><label>担当</label><select id="sh-trainer" onchange="changeTrainer()"></select></div>
+  <div class="acts"><button id="sh-visit" onclick="startVisit()">来店入力へ</button><button class="del" id="sh-del" onclick="delBooking()">削除</button></div>
+</div>
+
+<!-- 会員を選んで予定に入れる -->
+<div class="bsheet" id="picker">
+  <div class="bhead"><b id="pk-title">予定を追加</b><button onclick="closeAll()">×</button></div>
+  <div class="two">
+    <div><label>開始</label><input type="time" id="pk-time" step="1800" onchange="pickerHead()"></div>
+    <div><label>長さ</label><select id="pk-dur" onchange="pickerHead()"><option value="30">30分</option><option value="45">45分</option><option value="60" selected>60分</option><option value="90">90分</option><option value="120">120分</option></select></div>
+  </div>
+  <label>担当</label><select id="pk-trainer"></select>
+  <div id="pk-menu-row"><label>メニュー</label><select id="pk-menu"></select></div>
+  <div class="capline" id="pk-cap"></div>
+  <input id="pk-q" placeholder="🔍 名前で検索" oninput="renderPicker()" autocomplete="off" style="margin-top:10px">
+  <div class="pk-list" id="pk-list"></div>
+  <div class="pk-new"><input id="pk-new" placeholder="体験・新規の方のお名前"><button onclick="pickNew()">追加</button></div>
+</div>
+
+<div id="login">
+  <div class="brandbig" id="lg-brand">STAFF</div>
+  <div class="lead">スタッフ用の画面です。お店で決めた合言葉を入れてください。この端末では次から入力しなくても入れます。</div>
+  <div class="card">
+    <label>合言葉</label><input type="password" id="lg-key" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+    <button class="main" id="lg-btn" onclick="login()">入る</button>
+    <div class="sub" id="lg-msg" style="margin-top:12px;color:var(--red)"></div>
+  </div>
+</div>
+<div id="toast" role="status" aria-live="polite"><span class="ic"></span><span class="tx"></span><button class="act"></button></div>
+
+<script>
+let D = null, KEY = '', CAP = 3, OPEN = 9, CLOSE = 22;
+try { KEY = localStorage.getItem('staffKey') || ''; } catch (e) {}
+/* ---------- 合言葉の預け先（ホーム画面のアプリは、中のページのメモが消えやすいので、入り口のページにも預ける） ---------- */
+const BR = (() => {
+  let framed = true; try { framed = window.top !== window; } catch (e) {}
+  let seq = 0; const waits = {};
+  window.addEventListener('message', ev => {
+    const d = ev.data;
+    if (!d || d.fs !== 1) return;
+    try { if (ev.source !== window.top) return; } catch (e) { return; }
+    const w = waits[d.id]; if (w) { delete waits[d.id]; w(d.v); }
+  });
+  function ask(op, v, cb) {
+    cb = cb || function () {};
+    if (!framed) { cb('', false); return; }
+    const id = ++seq; let done = false;
+    const fin = (val, got) => { if (done) return; done = true; delete waits[id]; cb(val, got); };
+    waits[id] = val => fin(val, true);
+    setTimeout(() => fin('', false), 1500);
+    try { window.top.postMessage({ fs: 1, id: id, op: op, k: 'staffKey', v: v }, '*'); } catch (e) { fin('', false); }
+  }
+  return { ask: ask };
+})();
+const TITLES = { visit:'来店入力', sched:'予定', pay:'入金', sales:'売上', mem:'会員' };
+const yen = n => '¥' + Number(n).toLocaleString();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $ = id => document.getElementById(id);
+function v(id) { return String($(id).value == null ? "" : $(id).value).trim(); }
+
+/* ---------- サーバー呼び出し（合言葉を自動でつける） ---------- */
+function msgOf(e) { return String((e && e.message) || e || ''); }
+function authErr(e) {
+  const m = msgOf(e);
+  if (m.indexOf('BADKEY') >= 0) { showLogin('合言葉が違います'); return true; }
+  if (m.indexOf('NOSTAFFKEY') >= 0) { showLogin('スプレッドシートの「設定」シートで「スタッフ用の合言葉」を決めて入れてください'); return true; }
+  if (m.indexOf('LOCKED') >= 0) { showLogin('合言葉の間違いが続いたので、10分ほど待ってからやり直してください'); return true; }
+  return false;
+}
+function srv(fn, args, ok, fail) {
+  const r = google.script.run
+    .withSuccessHandler(ok)
+    .withFailureHandler(e => { const h = authErr(e); if (fail) fail(e, h); else if (!h) toast('失敗: ' + msgOf(e)); });
+  r[fn].apply(r, [KEY].concat(args || []));
+}
+
+/* ---------- ログイン ---------- */
+function showLogin(msg) {
+  $('login').style.display = 'block';
+  $('lg-msg').textContent = msg || '';
+  $('lg-btn').disabled = false;
+}
+function login() {
+  const k = v('lg-key');
+  if (!k) return;
+  KEY = k;
+  $('lg-btn').disabled = true;
+  boot();
+}
+function boot() {
+  srv('getInit', [], d => {
+    try { localStorage.setItem('staffKey', KEY); } catch (e) {}
+    BR.ask('set', KEY);
+    $('login').style.display = 'none';
+    $('lg-key').value = '';
+    render(d);
+    loadSched();
+  }, (e, handled) => { if (!handled) showLogin('読み込みに失敗しました: ' + msgOf(e)); });
+}
+function logout() {
+  try { localStorage.removeItem('staffKey'); } catch (e) {}
+  BR.ask('del', '');
+  KEY = '';
+  showLogin('ログアウトしました');
+}
+
+/* ---------- 画面の切り替え ---------- */
+function go(name, btn) {
+  closeAll();
+  closeDrawer();
+  if (SW_OPEN) swClose(SW_OPEN);
+  window.scrollTo(0, 0);
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  $('p-' + name).classList.add('on');
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  $('title').textContent = TITLES[name];
+  if (name === 'sched') loadSched();
+  if (name === 'sales' && SALESPIN) fetchSales(SALESPIN);
+}
+/* トースト：成功は✓、失敗は！。opt.action と opt.onAction で「元に戻す」などのボタン */
+let TOAST_FN = null;
+function toast(t, opt) {
+  opt = opt || {};
+  const e = $('toast');
+  const err = opt.type === 'err' || /^失敗|できません|違います/.test(String(t));
+  e.className = err ? 'err' : '';
+  e.querySelector('.ic').textContent = err ? '!' : '✓';
+  e.querySelector('.tx').textContent = t;
+  const a = e.querySelector('.act');
+  a.textContent = opt.action || '';
+  TOAST_FN = opt.onAction || null;
+  a.onclick = () => { const f = TOAST_FN; hideToast(); if (f) f(); };
+  e.offsetWidth; // 出し直しのアニメーション用
+  e.classList.add('show');
+  clearTimeout(toast.t);
+  toast.t = setTimeout(hideToast, opt.action ? 5000 : 2600);
+}
+function hideToast() { $('toast').classList.remove('show'); TOAST_FN = null; }
+
+/* ハンバーガーメニュー */
+function toggleDrawer() { document.body.classList.contains('drawer-open') ? closeDrawer() : openDrawer(); }
+function openDrawer() {
+  const cur = (document.querySelector('.page.on') || {}).id || '';
+  document.querySelectorAll('.dr-item[data-p]').forEach(b => b.classList[('p-' + b.getAttribute('data-p')) === cur ? 'add' : 'remove']('on'));
+  document.body.classList.add('drawer-open');
+}
+function closeDrawer() { document.body.classList.remove('drawer-open'); }
+function drawerGo(name) {
+  closeDrawer();
+  const btn = Array.prototype.find.call(document.querySelectorAll('nav button'), b => (b.getAttribute('onclick') || '').indexOf("'" + name + "'") >= 0);
+  go(name, btn || $('nav-visit'));
+}
+function openBookPage() {
+  const u = v('bookurl');
+  if (!u) return;
+  closeDrawer();
+  window.open(u, '_blank');
+}
+
+/* 最新の情報にする（引っぱって更新・更新ボタン・メニュー） */
+let REFRESHING = false;
+function refreshAll(done) {
+  if (REFRESHING || !KEY) { if (done) done(); return; }
+  REFRESHING = true;
+  $('refresh-btn').classList.add('spin');
+  const finish = (ok) => {
+    REFRESHING = false;
+    $('refresh-btn').classList.remove('spin');
+    if (done) done();
+    if (ok) toast('最新の情報にしました');
+  };
+  srv('getInit', [], d => {
+    render(d);
+    const cur = (document.querySelector('.page.on') || {}).id;
+    if (cur === 'p-sched') loadSched();
+    if (cur === 'p-sales' && SALESPIN) fetchSales(SALESPIN);
+    if (cur === 'p-hist') reloadHistory();
+    if (cur === 'p-visit') loadMemberHistory();
+    finish(true);
+  }, (e, h) => { finish(false); if (!h) toast('失敗: ' + msgOf(e)); });
+}
+(function pullToRefresh() {
+  let y0 = null, x0 = 0, dist = 0, active = false;
+  const ptr = () => $('ptr');
+  const panelOpen = () => document.body.classList.contains('drawer-open') || $('dim').style.display === 'block' || $('login').style.display === 'block';
+  const put = (d) => {
+    const p = ptr();
+    p.classList.remove('back');
+    p.style.opacity = String(Math.min(1, d / 40));
+    p.style.transform = 'translateY(' + (d - 90) + 'px) rotate(' + (d * 4) + 'deg)';
+    p.classList[d >= 64 ? 'add' : 'remove']('ready');
+  };
+  const reset = () => {
+    const p = ptr();
+    p.classList.add('back');
+    p.classList.remove('ready', 'loading');
+    p.style.opacity = '0';
+    p.style.transform = 'translateY(-90px)';
+  };
+  document.addEventListener('touchstart', e => {
+    if ((window.scrollY || document.documentElement.scrollTop) > 0 || panelOpen() || REFRESHING) { y0 = null; return; }
+    y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dist = 0; active = false;
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (y0 == null) return;
+    const dy = e.touches[0].clientY - y0, dx = Math.abs(e.touches[0].clientX - x0);
+    if (!active && (dy < 8 || dx > dy)) { if (dx > 12) y0 = null; return; }
+    active = true;
+    dist = Math.min(dy * 0.5, 96);
+    put(dist);
+  }, { passive: true });
+  document.addEventListener('touchend', () => {
+    if (y0 == null || !active) { y0 = null; return; }
+    y0 = null;
+    if (dist >= 64) {
+      const p = ptr();
+      p.classList.add('back', 'loading');
+      p.style.transform = 'translateY(0)';
+      refreshAll(reset);
+    } else reset();
+  });
+})();
+
+/* スワイプ：左にずらすと後ろのボタンが出る */
+const SW_W = 76;
+function swipeWrap(front, acts, small) {
+  return '<div class="sw' + (small ? ' m' : '') + '"><div class="sw-acts">' + acts.map(a =>
+    '<button class="' + a.cls + '" onclick="' + a.on + '"><svg viewBox="0 0 24 24">' + a.icon + '</svg>' + a.label + '</button>').join('') +
+    '</div><div class="sw-front" data-w="' + (acts.length * SW_W) + '">' + front + '</div></div>';
+}
+const IC_EDIT = '<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>';
+const IC_DEL = '<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>';
+const IC_GO = '<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/>';
+let SW_OPEN = null, SW_JUST = false;
+function swClose(el) { if (!el) return; el.classList.add('anim'); el.style.transform = ''; if (SW_OPEN === el) SW_OPEN = null; }
+(function swipe() {
+  let el = null, x0 = 0, y0 = 0, base = 0, w = 0, moving = false, decided = false, pid = null;
+  document.addEventListener('pointerdown', e => {
+    const f = e.target.closest ? e.target.closest('.sw-front') : null;
+    if (SW_OPEN && SW_OPEN !== f) { swClose(SW_OPEN); }
+    if (!f) return;
+    el = f; x0 = e.clientX; y0 = e.clientY; w = Number(f.getAttribute('data-w')) || SW_W * 2;
+    base = (SW_OPEN === f) ? -w : 0; moving = false; decided = false; pid = e.pointerId;
+  });
+  document.addEventListener('pointermove', e => {
+    if (!el || e.pointerId !== pid) return;
+    const dx = e.clientX - x0, dy = e.clientY - y0;
+    if (!decided) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      decided = true;
+      moving = Math.abs(dx) > Math.abs(dy);
+      if (!moving) { el = null; return; }
+      el.classList.remove('anim');
+    }
+    const x = Math.max(-w - 24, Math.min(0, base + dx));
+    el.style.transform = 'translateX(' + x + 'px)';
+  });
+  const end = e => {
+    if (!el || (e && e.pointerId !== pid)) return;
+    if (moving) {
+      const dx = (e ? e.clientX : x0) - x0;
+      const open = base + dx < -w / 2;
+      el.classList.add('anim');
+      el.style.transform = open ? 'translateX(' + (-w) + 'px)' : '';
+      SW_OPEN = open ? el : (SW_OPEN === el ? null : SW_OPEN);
+      SW_JUST = true; setTimeout(() => { SW_JUST = false; }, 60);
+    }
+    el = null; moving = false;
+  };
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
+  // スワイプした直後のタップ（クリック）は、カードを開かない
+  document.addEventListener('click', e => {
+    if (SW_JUST && e.target.closest && e.target.closest('.sw-front')) { e.stopPropagation(); e.preventDefault(); }
+  }, true);
+})();
+
+/* 数字のカウントアップ */
+function countUp(el, to, fmt) {
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !window.requestAnimationFrame) { el.textContent = fmt(to); return; }
+  const t0 = performance.now(), dur = 800;
+  const step = now => {
+    const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(Math.round(to * e));
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+function opts(list, ph) {
+  return '<option value="">' + ph + '</option>' + list.map(x => '<option>' + esc(x) + '</option>').join('');
+}
+function setOpts(id, html) { const el = $(id), cur = el.value; el.innerHTML = html; el.value = cur; }
+// 検索用：空白を無視、カタカナはひらがなにそろえる
+function norm(s) {
+  return String(s || '').replace(/[\s　]/g, '')
+    .replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60)).toLowerCase();
+}
+
+function render(d) {
+  D = d; CAP = d.capacity || 3; OPEN = d.open || 9; CLOSE = d.close || 22;
+  $('brand').textContent = d.title || '';
+  const names = d.members.map(m => m.name);
+  const singleOpt = '<option value="__single">単発（会員登録なし）</option>';
+  setOpts('v-member', opts(names, '選んでください') + singleOpt);
+  setOpts('p-member', opts(names, '選んでください') + singleOpt);
+  setOpts('v-trainer', opts(d.trainers, '選んでください'));
+  setOpts('p-trainer', opts(d.trainers, '選んでください'));
+  setOpts('sf-trainer', opts(d.trainers, '全員の予定').replace('</option>', '</option><option value="__none">担当未定</option>'));
+  setOpts('pk-trainer', opts(d.trainers, '担当未定'));
+  setOpts('sh-trainer', opts(d.trainers, '担当未定'));
+  setOpts('pk-menu', (d.menus || []).map(x => '<option>' + esc(x) + '</option>').join('') + '<option value="">（なし）</option>');
+  $('pk-menu-row').style.display = (d.menus || []).length ? 'block' : 'none';
+  const today = d.today.replace(/\//g, '-');
+  ['v-date', 'p-date', 's-date'].forEach(id => { if (!$(id).value) $(id).value = today; });
+
+  const exNames = [];
+  (d.exercises || []).concat(EX_DEFAULT).forEach(n => { if (n && exNames.indexOf(n) < 0) exNames.push(n); });
+  $('ex-names').innerHTML = exNames.map(n => '<option value="' + esc(n) + '">').join('');
+  if (!$('ex-list').innerHTML) renderEx();
+  renderVisitList();
+
+  if (d.bookUrl) { $('bookurl').value = d.bookUrl; $('bookurl-card').style.display = 'block'; }
+  $('dr-brand').textContent = d.title || 'STAFF';
+  if (d.dur) $('pk-dur').value = String(d.dur);
+  renderMembers();
+}
+
+/* ---------- 会員 ---------- */
+const NOCOURSE = 'コース未設定';
+function renderMembers() {
+  if (!D) return;
+  const q = norm(v('m-search'));
+  const groups = {}, order = [];
+  D.members.forEach((m, i) => {
+    const c = String(m.plan || '').trim() || NOCOURSE;
+    if (!groups[c]) { groups[c] = []; order.push(c); }
+    if (!q || norm(m.name).indexOf(q) >= 0) groups[c].push(i);
+  });
+  order.sort((a, b) => (a === NOCOURSE) - (b === NOCOURSE));
+  $('course-list').innerHTML = order.filter(c => c !== NOCOURSE).map(c => '<option value="' + esc(c) + '">').join('');
+  const shown = order.filter(c => groups[c].length);
+  const hits = shown.reduce((n, c) => n + groups[c].length, 0);
+  const head = D.members.length ? '<div class="sub" style="margin:10px 4px 0;display:flex">' + (q ? '見つかった会員 ' + hits + '人' : '会員 ' + D.members.length + '人') + '<span class="swhint">← 左にスワイプで来店入力・削除</span></div>' : '';
+  $('m-list').innerHTML = head + (shown.map(c =>
+    '<div class="gtitle">' + esc(c) + '<span class="sub">' + groups[c].length + '人</span></div>' +
+    groups[c].map(i => {
+      const m = D.members[i];
+      return swipeWrap('<div class="mcard" onclick="openHistory(' + i + ')"><b>' + esc(m.name) + '</b><span class="left' + (m.left <= 1 ? ' low' : '') + '"><small>残り</small> ' + m.left + '<small>回</small></span></div>',
+        [{ cls: 'a-go', on: 'swVisit(' + i + ')', icon: IC_GO, label: '来店入力' }, { cls: 'a-del', on: 'swDelMember(' + i + ')', icon: IC_DEL, label: '削除' }], true);
+    }).join('')
+  ).join('') || '<div class="sub" style="margin:14px 4px">' + (q ? '見つかりませんでした' : '会員を追加してください') + '</div>');
+}
+
+function call(fn, arg, btnId, msg, after) {
+  const b = btnId ? $(btnId) : null; if (b) b.disabled = true;
+  srv(fn, [arg], d => { render(d); if (b) b.disabled = false; toast(msg); if (after) after(); },
+    (e, h) => { if (b) b.disabled = false; if (!h) toast('失敗: ' + msgOf(e)); });
+}
+/* ---------- 来店入力：種目の行 ---------- */
+const EX_DEFAULT = ['ベンチプレス', 'スクワット', 'デッドリフト', 'ラットプルダウン', 'ショルダープレス', 'レッグプレス', 'ヒップスラスト',
+  'チェストプレス', 'シーテッドロウ', 'ブルガリアンスクワット', 'ランジ', 'スレッドプッシュ', 'スレッドプル', 'プランク'];
+let EX = [blankRow()], VHIST = { name: '', list: null };
+function blankRow() { return { name: '', weight: '', sets: '', reps: '', note: '' }; }
+function renderEx() {
+  $('ex-list').innerHTML = EX.map((x, i) =>
+    '<div class="ex"><div class="ex-top"><span class="ex-no num">' + (i + 1) + '</span>' +
+    '<input id="ex-name-' + i + '" list="ex-names" placeholder="種目（例 ベンチプレス）" value="' + esc(x.name) + '" oninput="exSet(' + i + ',\'name\',this)">' +
+    '<button class="ex-del" aria-label="この種目を消す" onclick="delRow(' + i + ')">×</button></div>' +
+    '<div class="ex-grid">' +
+    '<div><input inputmode="decimal" aria-label="重量" value="' + esc(x.weight) + '" oninput="exSet(' + i + ',\'weight\',this)"><span>kg</span></div>' +
+    '<div class="u-set"><input inputmode="numeric" aria-label="セット" value="' + esc(x.sets) + '" oninput="exSet(' + i + ',\'sets\',this)"><span>セット</span></div>' +
+    '<div class="u-rep"><input inputmode="numeric" aria-label="回数" value="' + esc(x.reps) + '" oninput="exSet(' + i + ',\'reps\',this)"><span>回</span></div>' +
+    '</div><input class="ex-note" placeholder="備考（例 補助あり、フォーム意識）" value="' + esc(x.note) + '" oninput="exSet(' + i + ',\'note\',this)"></div>'
+  ).join('');
+}
+function exSet(i, f, el) { if (EX[i]) EX[i][f] = el.value; }
+function addRow() {
+  EX.push(blankRow());
+  renderEx();
+  const el = $('ex-name-' + (EX.length - 1));
+  if (el && el.focus) el.focus();
+}
+function delRow(i) {
+  EX.splice(i, 1);
+  if (!EX.length) EX.push(blankRow());
+  renderEx();
+}
+function resetVisitForm() {
+  EX = [blankRow()];
+  renderEx();
+  $('v-note').value = '';
+}
+function filledRows() {
+  return EX.map(x => ({ name: String(x.name).trim(), weight: String(x.weight).trim(), sets: String(x.sets).trim(), reps: String(x.reps).trim(), note: String(x.note).trim() }))
+    .filter(x => x.name || x.weight || x.sets || x.reps || x.note);
+}
+// 「単発（会員登録なし）」を選ぶと名前の欄を出す。単発は会員一覧に入らず、残り回数も動かない
+function isSingle() { return v('v-member') === '__single'; }
+function visitWho() { return isSingle() ? { name: v('v-single'), single: true } : { name: v('v-member'), single: false }; }
+function memberPicked() {
+  PENDING = '';
+  $('v-single').style.display = isSingle() ? 'block' : 'none';
+  $('v-btn').textContent = EDIT_ID ? '変更を保存' : (isSingle() ? '記録する（単発）' : '記録する（残り回数 −1）');
+  loadMemberHistory();
+}
+function loadMemberHistory() {
+  const name = isSingle() ? '' : v('v-member');
+  VHIST = { name: name, list: null };
+  renderVisitList();
+  if (!name) return;
+  srv('getHistory', [name], list => { if (v('v-member') === name) { VHIST = { name: name, list: list }; renderVisitList(); } });
+}
+function copyPrev() {
+  const last = (VHIST.list || []).find(x => x.rows && x.rows.length);
+  if (!last) return;
+  if (filledRows().length && !confirm('入力中の種目を、前回（' + last.date + '）の内容で置きかえますか？')) return;
+  EX = last.rows.map(r => Object.assign(blankRow(), r));
+  renderEx();
+  toast('前回（' + last.date + '）の内容を写しました。重量や回数を直してね');
+}
+function wfmt(w) { w = String(w || ''); return /^[0-9.]+$/.test(w) ? w + 'kg' : w; }
+function visitCard(x, showMember) {
+  let h = '<div class="vcard"><div class="vhead">' + (showMember ? '<b>' + esc(x.member) + (x.single ? '<span class="tagsg">単発</span>' : '') + '</b>' : '') +
+    '<span class="num vdate">' + esc(x.date) + '</span><span class="sub">' + esc(x.trainer) + '</span></div>';
+  if (x.rows && x.rows.length) {
+    h += '<table class="vt"><tr><th>種目</th><th>重量</th><th>セット</th><th>回数</th></tr>' + x.rows.map(r =>
+      '<tr><td>' + esc(r.name) + (r.note ? '<div class="vnote">' + esc(r.note) + '</div>' : '') + '</td>' +
+      '<td class="num">' + esc(wfmt(r.weight)) + '</td><td class="num">' + esc(r.sets) + '</td><td class="num">' + esc(r.reps) + '</td></tr>').join('') + '</table>';
+  }
+  if (x.note) h += '<div class="vmemo">' + esc(x.note) + '</div>';
+  h += '</div>';
+  if (!x.id) return h;
+  VREC[x.id] = x;
+  const q = '\'' + esc(x.id) + '\'';
+  return swipeWrap(h, [{ cls: 'a-edit', on: 'editVisit(' + q + ')', icon: IC_EDIT, label: '編集' }, { cls: 'a-del', on: 'delVisit(' + q + ')', icon: IC_DEL, label: '削除' }]);
+}
+/* 来店記録の編集・削除 */
+let VREC = {}, EDIT_ID = '';
+function editVisit(id) {
+  const x = VREC[id]; if (!x) return;
+  EDIT_ID = id;
+  PENDING = '';
+  go('visit', $('nav-visit'));
+  $('v-date').value = x.date.replace(/\//g, '-');
+  if (x.single) { $('v-member').value = '__single'; $('v-single').value = x.member; }
+  else $('v-member').value = x.member;
+  $('v-member').disabled = true;
+  $('v-single').disabled = true;
+  $('v-single').style.display = x.single ? 'block' : 'none';
+  $('v-trainer').value = x.trainer || '';
+  EX = (x.rows && x.rows.length) ? x.rows.map(r => Object.assign(blankRow(), r)) : [blankRow()];
+  renderEx();
+  $('v-note').value = x.note || '';
+  $('v-btn').textContent = '変更を保存';
+  $('v-cancel').style.display = 'block';
+  $('v-editing').innerHTML = '<b>' + esc(x.member) + 'さん ' + esc(x.date) + '</b> の記録を編集しています';
+  $('v-editing').style.display = 'block';
+  loadMemberHistory();
+  window.scrollTo(0, 0);
+}
+function cancelEdit() {
+  EDIT_ID = '';
+  $('v-member').disabled = false;
+  $('v-single').disabled = false;
+  $('v-btn').textContent = isSingle() ? '記録する（単発）' : '記録する（残り回数 −1）';
+  $('v-cancel').style.display = 'none';
+  $('v-editing').style.display = 'none';
+  resetVisitForm();
+}
+function afterVisitChange(r) {
+  render(r.init || r);
+  if (CURM && CURM === (r.member || CURM)) reloadHistory();
+  loadMemberHistory();
+}
+function delVisit(id) {
+  const x = VREC[id]; if (!x) return;
+  srv('deleteVisit', [id], r => {
+    if (EDIT_ID === id) cancelEdit();
+    afterVisitChange(r);
+    toast(x.member + 'さん ' + x.date + ' の記録を削除しました' + (x.single ? '' : '（残り回数 +1）'), {
+      action: '元に戻す',
+      onAction: () => srv('addVisit', [{ date: x.date, member: x.member, single: !!x.single, trainer: x.trainer, rows: x.rows || [], note: x.note || '' }],
+        d => { afterVisitChange({ init: d, member: x.member }); toast('元に戻しました'); })
+    });
+  });
+}
+function swVisit(i) {
+  const m = D.members[i]; if (!m) return;
+  if (SW_OPEN) swClose(SW_OPEN);
+  if (EDIT_ID) cancelEdit();
+  go('visit', $('nav-visit'));
+  $('v-member').value = m.name;
+  memberPicked();
+}
+function swDelMember(i) {
+  const m = D.members[i]; if (!m) return;
+  CURM = m.name;
+  deleteMember();
+}
+function renderVisitList() {
+  if (!D) return;
+  const name = isSingle() ? '' : v('v-member');
+  if (name && VHIST.name === name) {
+    $('v-histtitle').innerHTML = esc(name) + 'さんの記録' + (VHIST.list ? '<span class="sub">' + VHIST.list.length + '回</span>' : '') + '<span class="swhint">← スワイプで編集・削除</span>';
+    $('v-list').innerHTML = !VHIST.list ? '<div class="sub">読み込み中…</div>' :
+      (VHIST.list.map(x => visitCard(x, false)).join('') || '<div class="sub" style="margin:0 4px">まだ記録がありません。今日が1回目です</div>');
+    $('v-copy').disabled = !(VHIST.list && VHIST.list.some(x => x.rows && x.rows.length));
+  } else {
+    $('v-histtitle').innerHTML = '最近の記録（全員）<span class="swhint">← スワイプで編集・削除</span>';
+    $('v-list').innerHTML = D.visits.map(x => visitCard(x, true)).join('') || '<div class="sub" style="margin:0 4px">まだ記録がありません</div>';
+    $('v-copy').disabled = true;
+  }
+}
+function sendVisit() {
+  const who = visitWho();
+  const o = { date: v('v-date').replace(/-/g, '/'), member: who.name, single: who.single, trainer: v('v-trainer'), rows: filledRows(), note: v('v-note'), bookingId: PENDING };
+  if (!o.member) return toast(who.single ? '単発の方のお名前を入れてね' : '会員を選んでね');
+  if (!o.trainer) return toast('担当を選んでね');
+  if (EDIT_ID) {
+    const b = $('v-btn'); b.disabled = true;
+    srv('updateVisit', [{ id: EDIT_ID, date: o.date, trainer: o.trainer, rows: o.rows, note: o.note }], r => {
+      b.disabled = false;
+      render(r.init);
+      cancelEdit();
+      $('v-member').value = r.member;
+      loadMemberHistory();
+      if (CURM === r.member) reloadHistory();
+      toast('変更を保存しました');
+    }, (e, h) => { b.disabled = false; if (!h) toast('失敗: ' + msgOf(e)); });
+    return;
+  }
+  if (!o.rows.length && !o.note && !confirm('トレーニング内容が空です。このまま記録しますか？')) return;
+  call('addVisit', o, 'v-btn', who.single ? '単発で記録しました' : '記録しました', () => {
+    resetVisitForm(); PENDING = '';
+    if (who.single) { $('v-member').value = ''; $('v-single').value = ''; memberPicked(); } else loadMemberHistory();
+    loadSched();
+  });
+}
+function payMemberPicked() {
+  const single = v('p-member') === '__single';
+  $('p-single').style.display = single ? 'block' : 'none';
+  $('p-sessions-row').style.display = single ? 'none' : 'block';
+}
+function sendPay() {
+  const single = v('p-member') === '__single';
+  const o = { date: v('p-date').replace(/-/g, '/'), member: single ? v('p-single') : v('p-member'), single: single, trainer: v('p-trainer'), amount: v('p-amount'), sessions: single ? '' : v('p-sessions'), memo: v('p-memo') };
+  if (!o.member) return toast(single ? '単発の方のお名前を入れてね' : '会員を選んでね');
+  if (!o.amount) return toast('金額を入れてね');
+  call('addPayment', o, 'p-btn', single ? '単発の入金を記録しました' : '入金を記録しました', () => {
+    ['p-amount', 'p-sessions', 'p-memo', 'p-single'].forEach(i => $(i).value = '');
+    if (single) { $('p-member').value = ''; payMemberPicked(); }
+  });
+}
+function sendMember() {
+  const o = { name: v('m-name'), plan: v('m-plan'), left: v('m-left') };
+  if (!o.name) return toast('名前を入れてね');
+  if (D && D.members.some(m => norm(m.name) === norm(o.name)) && !confirm('「' + o.name + '」さんはもう登録されています。それでも追加しますか？')) return;
+  call('addMember', o, 'm-btn', '追加しました', () => ['m-name', 'm-plan', 'm-left'].forEach(i => $(i).value = ''));
+}
+
+/* ---------- 予定（日・週のカレンダー） ---------- */
+let PENDING = '', ITEMS = {}, SEL = null, PK_DATE = '', LAST_TRAINER = '', BUSY = false, TL_START = 9;
+let MODE = 'week';
+try { MODE = localStorage.getItem('schedMode') || 'week'; } catch (e) {}
+const HP = 64, WHP = 64;   // 1時間あたりの高さ（日の表示・週の表示）
+const BLK = 15;            // 同時人数を数える細かさ（分）
+const WK = '日月火水木金土';
+// 担当ごとの色（トレーナーシートの順番で決まる）
+const PAL = ['#1E5AA8', '#E0861A', '#0B8043', '#8E24AA', '#039BE5', '#C2185B', '#3F51B5', '#33B679', '#795548', '#616161'];
+const NOTR = '#a39e93';
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function toMin(t) { const p = String(t).split(':'); return Number(p[0]) * 60 + Number(p[1] || 0); }
+function minStr(m) { return pad2(Math.floor(m / 60)) + ':' + pad2(m % 60); }
+function ymdOf(s) { const p = String(s).split('/'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function fmtD(d) { return d.getFullYear() + '/' + pad2(d.getMonth() + 1) + '/' + pad2(d.getDate()); }
+function addD(s, n) { const d = ymdOf(s); d.setDate(d.getDate() + n); return fmtD(d); }
+function sDate() { return v('s-date').replace(/-/g, '/'); }
+function setSDate(s) { $('s-date').value = s.replace(/\//g, '-'); }
+function todayStr() { return fmtD(new Date()); }
+function weekStart(s) { const d = ymdOf(s); d.setDate(d.getDate() - d.getDay()); return fmtD(d); }
+function weekDays() { const st = weekStart(sDate()); return [0, 1, 2, 3, 4, 5, 6].map(i => addD(st, i)); }
+function dateLabel(s) { const d = ymdOf(s); return (d.getMonth() + 1) + '/' + d.getDate() + '(' + WK[d.getDay()] + ')'; }
+function rangeLabel(a, b) {
+  const x = ymdOf(a), y = ymdOf(b);
+  return (x.getMonth() + 1) + '月' + x.getDate() + '日〜' + (x.getMonth() === y.getMonth() ? '' : (y.getMonth() + 1) + '月') + y.getDate() + '日';
+}
+
+function setMode(m) { MODE = m; try { localStorage.setItem('schedMode', m); } catch (e) {} loadSched(); }
+function shiftDay(n) { setSDate(addD(sDate(), MODE === 'week' ? n * 7 : n)); loadSched(); }
+function goToday() { setSDate(todayStr()); loadSched(); }
+function openDay(d) { setSDate(d); setMode('day'); }
+
+function loadSched() {
+  const d = sDate();
+  if (!d || !KEY) return;
+  if (MODE === 'week') {
+    const first = weekDays()[0];
+    srv('getWeek', [first], r => {
+      r.days.forEach(x => { ITEMS[x] = []; });
+      r.items.forEach(it => { (ITEMS[it.date] = ITEMS[it.date] || []).push(it); });
+      if (MODE === 'week' && weekStart(sDate()) === r.days[0]) renderSched();
+    });
+  } else {
+    srv('getSchedule', [d], l => { ITEMS[d] = l; if (MODE === 'day' && d === sDate()) renderSched(); });
+  }
+  renderSched();  // 手元にあるデータで先に描いておく
+}
+
+function itemsOn(date) { return ITEMS[date] || []; }
+function shown(date) {
+  const f = v('sf-trainer');
+  return itemsOn(date).filter(b => !f || (f === '__none' ? !b.trainer : b.trainer === f));
+}
+// 同時に何人入っているか（15分ごと）。担当の絞り込みに関係なく全員分で数える
+function conc(date, b0) {
+  return itemsOn(date).filter(b => toMin(b.time) < b0 + BLK && toMin(b.time) + (b.dur || 60) > b0).length;
+}
+// その1時間（h時台）でいちばん混んでいるときの人数
+function hourCount(date, h) {
+  let m = 0;
+  for (let b = h * 60; b < (h + 1) * 60; b += BLK) m = Math.max(m, conc(date, b));
+  return m;
+}
+function colorOf(b) {
+  const i = (b.trainer && D) ? D.trainers.indexOf(b.trainer) : -1;
+  return i < 0 ? NOTR : PAL[i % PAL.length];
+}
+function hourRange(dates) {
+  let sH = OPEN, eH = CLOSE;
+  dates.forEach(d => itemsOn(d).forEach(b => {
+    const st = toMin(b.time);
+    sH = Math.min(sH, Math.floor(st / 60));
+    eH = Math.max(eH, Math.ceil((st + (b.dur || 60)) / 60));
+  }));
+  return [sH, Math.min(eH, 24)];
+}
+function layoutItems(items) {
+  const out = [];
+  let cluster = [], clusterEnd = 0;
+  function flush() {
+    const cols = Math.max.apply(null, cluster.map(x => x.col + 1));
+    cluster.forEach(x => { x.cols = cols; out.push(x); });
+    cluster = [];
+  }
+  items.forEach(it => {
+    if (cluster.length && it.start >= clusterEnd) flush();
+    const taken = cluster.filter(x => x.end > it.start).map(x => x.col);
+    let col = 0;
+    while (taken.indexOf(col) >= 0) col++;
+    it.col = col;
+    cluster.push(it);
+    clusterEnd = Math.max(clusterEnd, it.end);
+  });
+  if (cluster.length) flush();
+  return out;
+}
+function placed(date) {
+  return layoutItems(shown(date)
+    .map(b => ({ b: b, start: toMin(b.time), end: toMin(b.time) + (b.dur || 60) }))
+    .sort((x, y) => x.start - y.start || x.end - y.end));
+}
+function blockHtml(date, it, top, ht, week) {
+  const b = it.b, w = 100 / it.cols;
+  const pos = 'top:' + top + 'px;height:' + ht + 'px;left:calc(' + (it.col * w) + '% + 1px);width:calc(' + w + '% - 2px);';
+  const vert = week && it.cols >= 2;
+  // 細いときは名前を1文字ずつ縦に並べる
+  let inner = vert
+    ? '<b>' + ((b.done ? '✓' : '') + String(b.member).replace(/[\s\u3000]/g, '')).split('').map(esc).join('<br>') + '</b>'
+    : '<b>' + (b.done ? '✓' : '') + esc(b.member) + '</b>';
+  if (!vert) {
+    if (week) inner += '<br>' + esc(b.trainer || '');
+    else inner += (b.menu ? '<span class="tag">' + esc(b.menu) + '</span>' : '') + (b.src === 'Web' ? '<span class="tag">Web</span>' : '') + '<br><span class="t">' + minStr(it.start) + '–' + minStr(it.end) + '</span>　' + esc(b.trainer || '担当未定');
+  }
+  return '<div class="blk' + (b.done ? ' done' : '') + (vert ? ' v' : '') + '" onclick="event.stopPropagation();openSheet(\'' + date + '\',\'' + esc(b.id) + '\')" style="' + pos + 'background:' + colorOf(b) + '">' + inner + '</div>';
+}
+
+function renderLegend() {
+  if (!D) return;
+  $('legend').innerHTML = D.trainers.map((t, i) => '<span><i style="background:' + PAL[i % PAL.length] + '"></i>' + esc(t) + '</span>').join('') +
+    '<span><i style="background:' + NOTR + '"></i>担当未定</span><span><i style="background:#F7D3D5"></i>満員の時間</span>';
+}
+
+function renderSched() {
+  $('m-day').classList[MODE === 'day' ? 'add' : 'remove']('on');
+  $('m-week').classList[MODE === 'week' ? 'add' : 'remove']('on');
+  renderLegend();
+  if (MODE === 'week') renderWeek(); else renderDay();
+}
+
+function renderDay() {
+  const date = sDate();
+  const list = shown(date);
+  const f = v('sf-trainer');
+  $('s-range').textContent = dateLabel(date) + (date === todayStr() ? '　今日' : '');
+  $('s-count').textContent = list.length + '件' + (f ? '（' + (f === '__none' ? '担当未定' : f) + '）' : '');
+  const r = hourRange([date]), sH = r[0], eH = r[1];
+  TL_START = sH;
+  let html = '<div class="tl" onclick="tlClick(event,this)" style="height:' + ((eH - sH) * HP) + 'px">';
+  for (let h = sH; h <= eH; h++) {
+    const y = (h - sH) * HP;
+    let label = h + ':00';
+    if (h < eH) {
+      const c = hourCount(date, h);
+      label += '<br><span class="cnt' + (c >= CAP ? ' full' : '') + '">' + (c >= CAP ? '満 ' : '') + c + '/' + CAP + '</span>';
+      if (c >= CAP) html += '<div class="fullbg" style="top:' + y + 'px;height:' + HP + 'px"></div>';
+      else html += '<div class="slot" style="top:' + y + 'px;height:' + HP + 'px">＋ あと' + (CAP - c) + '枠</div>';
+      html += '<div class="half" style="top:' + (y + HP / 2) + 'px"></div>';
+    }
+    html += '<div class="line" style="top:' + y + 'px"></div><div class="hr" style="top:' + y + 'px">' + label + '</div>';
+  }
+  placed(date).forEach(it => {
+    html += blockHtml(date, it, (it.start - sH * 60) * HP / 60, Math.max(36, (it.end - it.start) * HP / 60 - 2), false);
+  });
+  $('s-list').innerHTML = html + '</div>';
+}
+
+function renderWeek() {
+  const days = weekDays(), today = todayStr();
+  const r = hourRange(days), sH = r[0], eH = r[1];
+  TL_START = sH;
+  $('s-range').textContent = rangeLabel(days[0], days[6]);
+  $('s-count').textContent = days.reduce((n, d) => n + shown(d).length, 0) + '件';
+  let h = '<div class="wk"><div class="wk-head"><div class="wk-gut"></div>' + days.map(d => {
+    const w = ymdOf(d).getDay();
+    return '<div class="wd' + (w === 0 ? ' sun' : w === 6 ? ' sat' : '') + (d === today ? ' today' : '') + '" onclick="openDay(\'' + d + '\')"><span>' + WK[w] + '</span><b>' + ymdOf(d).getDate() + '</b></div>';
+  }).join('') + '</div>';
+  h += '<div class="wk-body" style="height:' + ((eH - sH) * WHP) + 'px">';
+  for (let x = sH; x <= eH; x++) {
+    const y = (x - sH) * WHP;
+    h += '<div class="wk-line" style="top:' + y + 'px"></div><div class="wk-hr" style="top:' + y + 'px">' + x + ':00</div>';
+  }
+  h += '<div class="wk-cols" onclick="wkClick(event,this)">';
+  days.forEach((d, di) => {
+    h += '<div class="wk-col" style="left:' + (di * 100 / 7) + '%;width:' + (100 / 7) + '%">';
+    for (let x = sH; x < eH; x++) {
+      const top = (x - sH) * WHP;
+      if (hourCount(d, x) >= CAP) h += '<div class="fullbg" style="top:' + top + 'px;height:' + WHP + 'px"></div>';
+      else if (d >= today) h += '<div class="slot" style="top:' + top + 'px;height:' + WHP + 'px">＋</div>';
+    }
+    placed(d).forEach(it => {
+      h += blockHtml(d, it, (it.start - sH * 60) * WHP / 60, Math.max(18, (it.end - it.start) * WHP / 60 - 1), true);
+    });
+    h += '</div>';
+  });
+  $('s-list').innerHTML = h + '</div></div></div>';
+}
+
+function tlClick(ev, el) {
+  const y = ev.clientY - el.getBoundingClientRect().top;
+  const m = TL_START * 60 + Math.max(0, Math.floor(y / (HP / 2))) * 30;
+  openPicker(Math.min(m, 23 * 60 + 30), sDate());
+}
+function wkClick(ev, el) {
+  const rc = el.getBoundingClientRect();
+  const di = Math.min(6, Math.max(0, Math.floor((ev.clientX - rc.left) / (rc.width / 7))));
+  const m = TL_START * 60 + Math.max(0, Math.floor((ev.clientY - rc.top) / (WHP / 2))) * 30;
+  openPicker(Math.min(m, 23 * 60 + 30), weekDays()[di]);
+}
+function defaultStart(date) {
+  const now = new Date();
+  if (date === todayStr()) {
+    const m = Math.ceil((now.getHours() * 60 + now.getMinutes()) / 30) * 30;
+    if (m >= OPEN * 60 && m < CLOSE * 60) return m;
+  }
+  return OPEN * 60;
+}
+
+/* 下から出るパネル */
+function showPanel(id) {
+  ['sheet', 'picker'].forEach(x => $(x).style.display = (x === id ? 'block' : 'none'));
+  $('dim').style.display = id ? 'block' : 'none';
+}
+function closeAll() { showPanel(''); }
+
+/* 会員を選んで追加 */
+function openPicker(min, date) {
+  PK_DATE = date || sDate();
+  $('pk-time').value = minStr(min);
+  $('pk-q').value = '';
+  $('pk-new').value = '';
+  const f = v('sf-trainer');
+  $('pk-trainer').value = (f && f !== '__none') ? f : LAST_TRAINER;
+  pickerHead();
+  renderPicker();
+  showPanel('picker');
+  $('picker').scrollTop = 0;
+}
+// 入れようとしている時間のうち、もう満員の時間帯（時）
+function fullHours(date, st, dur) {
+  const out = [];
+  for (let b = Math.floor(st / BLK) * BLK; b < st + dur; b += BLK) {
+    const h = Math.floor(b / 60);
+    if (conc(date, b) >= CAP && out.indexOf(h) < 0) out.push(h);
+  }
+  return out;
+}
+function pickerHead() {
+  const t = v('pk-time');
+  $('pk-title').textContent = dateLabel(PK_DATE) + ' ' + (t || '') + '〜';
+  if (!t) { $('pk-cap').textContent = ''; return; }
+  const st = toMin(t), dur = Number(v('pk-dur')) || 60;
+  const parts = [];
+  for (let h = Math.floor(st / 60); h * 60 < st + dur; h++) parts.push(h + '時台 ' + hourCount(PK_DATE, h) + '/' + CAP + '人');
+  const full = fullHours(PK_DATE, st, dur);
+  $('pk-cap').textContent = '予約の埋まり具合：' + parts.join('、') + (full.length ? '（満枠あり）' : '');
+  $('pk-cap').className = 'capline' + (full.length ? ' full' : '');
+}
+function renderPicker() {
+  if (!D) return;
+  const q = norm(v('pk-q'));
+  const list = D.members.map((m, i) => ({ m: m, i: i })).filter(x => !q || norm(x.m.name).indexOf(q) >= 0);
+  $('pk-list').innerHTML = list.map(x =>
+    '<button class="pk-item" onclick="pickMember(' + x.i + ')"><span><b>' + esc(x.m.name) + '</b> <span class="sub">' + esc(x.m.plan || '') + '</span></span>' +
+    '<span class="sub' + (x.m.left <= 1 ? ' low' : '') + '">残り' + x.m.left + '回</span></button>'
+  ).join('') || '<div class="sub" style="padding:14px">' + (q ? '見つかりません。下の欄で体験・新規として追加できます' : '会員がまだいません') + '</div>';
+}
+function pickMember(i) { addFromPicker(D.members[i].name, false); }
+function pickNew() {
+  const n = v('pk-new');
+  if (!n) return toast('お名前を入れてね');
+  addFromPicker(n, true);
+}
+function addFromPicker(name, isNew) {
+  if (BUSY) return;
+  const t = v('pk-time');
+  if (!t) return toast('開始時間を入れてね');
+  const date = PK_DATE, st = toMin(t), dur = Number(v('pk-dur')) || 60;
+  const full = fullHours(date, st, dur);
+  if (full.length && !confirm(full.map(h => h + '時台').join('・') + 'は、もう' + CAP + '枠埋まっています。それでも追加しますか？')) return;
+  LAST_TRAINER = v('pk-trainer');
+  BUSY = true;
+  srv('addBooking', [{ date: date, time: t, member: name, trainer: LAST_TRAINER, memo: isNew ? '体験・新規' : '', dur: dur, menu: v('pk-menu') }],
+    l => { BUSY = false; ITEMS[date] = l; renderSched(); closeAll(); toast(name + 'さんを ' + dateLabel(date) + ' ' + t + ' に入れました'); },
+    (e, h) => { BUSY = false; if (!h) toast('失敗: ' + msgOf(e)); });
+}
+
+/* 予定の中身 */
+function selItem() { return SEL ? itemsOn(SEL.date).find(x => x.id === SEL.id) : null; }
+function openSheet(date, id) {
+  SEL = { date: date, id: id };
+  const b = selItem(); if (!b) return;
+  const st = toMin(b.time), en = st + (b.dur || 60);
+  $('sh-title').textContent = b.member;
+  let h = '<div class="row"><span class="sub">時間</span><span>' + dateLabel(date) + ' ' + minStr(st) + '–' + minStr(en) + '（' + (b.dur || 60) + '分）</span></div>';
+  if (b.menu) h += '<div class="row"><span class="sub">メニュー</span><span>' + esc(b.menu) + '</span></div>';
+  if (b.done) h += '<div class="row"><span class="sub">来店</span><span>✓ 来店済み</span></div>';
+  if (b.phone) h += '<div class="row"><span class="sub">電話</span><a href="tel:' + esc(b.phone) + '">' + esc(b.phone) + '</a></div>';
+  if (b.src) h += '<div class="row"><span class="sub">受付</span><span>' + esc(b.src === 'Web' ? '予約ページから' : b.src) + '</span></div>';
+  if (b.memo) h += '<div class="row"><span class="sub">メモ</span><span style="text-align:right">' + esc(b.memo) + '</span></div>';
+  $('sh-body').innerHTML = h;
+  $('sh-trainer').value = b.trainer || '';
+  $('sh-visit').disabled = !!b.done;
+  $('sh-visit').textContent = b.done ? '来店済み' : '来店入力へ';
+  showPanel('sheet');
+}
+function changeTrainer() {
+  const b = selItem(); if (!b) return;
+  const t = v('sh-trainer'), date = SEL.date;
+  srv('setBookingTrainer', [{ id: b.id, trainer: t, date: date }],
+    l => { ITEMS[date] = l; renderSched(); closeAll(); toast('担当を「' + (t || '担当未定') + '」にしました'); });
+}
+function delBooking() {
+  const b = selItem(); if (!b) return;
+  const date = SEL.date;
+  closeAll();
+  srv('deleteBooking', [{ id: b.id, date: date }], l => {
+    ITEMS[date] = l; renderSched();
+    toast(b.time + ' ' + b.member + 'さんの予定を削除しました', {
+      action: '元に戻す',
+      onAction: () => srv('addBooking', [{ date: date, time: b.time, member: b.member, trainer: b.trainer, memo: b.memo, dur: b.dur, menu: b.menu, phone: b.phone, src: b.src }],
+        l2 => { ITEMS[date] = l2; renderSched(); toast('元に戻しました'); })
+    });
+  });
+}
+function startVisit() {
+  const b = selItem(); if (!b || b.done) return;
+  closeAll();
+  $('v-date').value = SEL.date.replace(/\//g, '-');
+  const isMember = !!(D && D.members.some(m => m.name === b.member));
+  $('v-member').value = isMember ? b.member : '__single';
+  $('v-single').value = isMember ? '' : b.member;
+  $('v-trainer').value = b.trainer || '';
+  resetVisitForm();
+  memberPicked();
+  PENDING = b.id;
+  go('visit', $('nav-visit'));
+  if (!isMember) toast('会員一覧にいない方なので、単発で記録します');
+  else if (!b.trainer) toast('担当を選んでね');
+}
+
+function copyUrl() {
+  const el = $('bookurl'); el.select(); el.setSelectionRange(0, 9999);
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) {}
+  toast(ok ? 'コピーしました' : 'URLを長押ししてコピーしてね');
+}
+
+/* ---------- 売上 ---------- */
+let SALESPIN = '';
+function showSales(on) {
+  $('s-lock').style.display = on ? 'none' : 'block';
+  $('s-body').style.display = on ? 'block' : 'none';
+}
+function unlockSales() {
+  const pin = v('s-pin');
+  if (!pin) return;
+  fetchSales(pin);
+}
+function lockSales() { SALESPIN = ''; showSales(false); $('s-msg').textContent = ''; }
+function fetchSales(pin) {
+  const b = $('s-btn'); b.disabled = true;
+  srv('getSalesView', [pin], r => {
+    b.disabled = false;
+    if (r.error) {
+      SALESPIN = ''; showSales(false);
+      $('s-msg').textContent =
+        r.error === 'wrong' ? '暗証番号が違います' :
+        r.error === 'locked' ? '間違いが続いたので、10分ほどロックされています' :
+        'スプレッドシートの「設定」シートで、売上の暗証番号を入れてください';
+      return;
+    }
+    SALESPIN = pin;
+    $('s-pin').value = '';
+    $('s-msg').textContent = '';
+    renderSales(r.sales);
+    showSales(true);
+  }, (e, h) => { b.disabled = false; if (!h) toast('失敗: ' + msgOf(e)); });
+}
+function lastMonths(cur, n) {
+  const p = cur.split('/'); let y = +p[0], m = +p[1];
+  const out = [];
+  for (let i = 0; i < n; i++) { out.unshift(y + '/' + pad2(m)); m--; if (!m) { m = 12; y--; } }
+  return out;
+}
+function barTip(i) {
+  document.querySelectorAll('#s-bars .bar').forEach((b, j) => b.classList[j === i ? 'toggle' : 'remove']('tip'));
+}
+function renderSales(s) {
+  $('s-month').textContent = s.month;
+  countUp($('s-this'), s.thisMonth, yen);
+  // 月別の棒グラフ（直近6か月）。今月だけ濃い赤＋金額、ほかは押すと金額
+  const months = lastMonths(s.month, 6);
+  const vals = months.map(m => s.byMonth[m] || 0);
+  const max = Math.max.apply(null, vals.concat([1]));
+  const prev = vals[vals.length - 2];
+  $('s-diff').textContent = prev ? '先月 ' + yen(prev) + '（' + (s.thisMonth >= prev ? '+' : '−') + yen(Math.abs(s.thisMonth - prev)).replace('¥', '¥') + '）' : '';
+  $('s-bars').innerHTML = months.map((m, i) => {
+    const cur = i === months.length - 1;
+    return '<div class="bar' + (cur ? ' cur' : '') + '" onclick="barTip(' + i + ')" role="img" aria-label="' + (+m.split('/')[1]) + '月 ' + yen(vals[i]) + '">' +
+      '<span class="val" style="bottom:' + (vals[i] / max * 100) + '%">' + yen(vals[i]) + '</span>' +
+      '<i style="height:' + Math.max(1, vals[i] / max * 100) + '%"></i></div>';
+  }).join('');
+  $('s-barsx').innerHTML = months.map((m, i) => '<span' + (i === months.length - 1 ? ' class="cur"' : '') + '>' + (+m.split('/')[1]) + '月</span>').join('');
+  // コース別：横棒（いちばん多いコースを100%）
+  const courseRows = (obj, empty) => {
+    const keys = Object.keys(obj).sort((a, b) => obj[b] - obj[a]);
+    const top = keys.length ? obj[keys[0]] || 1 : 1;
+    return keys.map(k => '<div class="hb"><div class="hb-top"><span>' + esc(k) + '</span><b>' + yen(obj[k]) + '</b></div>' +
+      '<div class="hb-track"><i style="width:' + Math.max(2, obj[k] / top * 100) + '%"></i></div></div>').join('') || '<div class="sub" style="margin-top:8px">' + empty + '</div>';
+  };
+  $('s-cm').innerHTML = courseRows(s.byCourseMonth || {}, '今月の入金はまだありません');
+  $('s-amt').innerHTML = (s.byAmount || []).map(g =>
+    '<div class="amt-g"><div class="amt-h"><b>' + (g.amount == null ? '入金なし' : yen(g.amount)) + '</b><span class="sub">' + g.members.length + '人</span></div>' +
+    g.members.map(m => '<div class="row"><span>' + esc(m.name) + ' <span class="sub">' + esc(m.course) + '</span></span><b class="num">' + (m.total ? yen(m.total) : '—') + '</b></div>').join('') +
+    '</div>').join('') || '<div class="sub" style="margin-top:8px">会員がまだいません</div>';
+  $('s-ca').innerHTML = courseRows(s.byCourseAll || {}, 'まだ入金がありません');
+  $('s-mo').innerHTML = Object.keys(s.byMonth).sort().reverse().map(k =>
+    '<div class="row"><span class="num" style="font-size:17px">' + esc(k) + '</span><b class="num">' + yen(s.byMonth[k]) + '</b></div>').join('');
+}
+
+/* ---------- 会員の履歴 ---------- */
+let CURM = '';
+function openHistory(i) {
+  const m = D.members[i];
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  $('p-hist').classList.add('on');
+  $('title').textContent = '会員の記録';
+  $('h-name').textContent = m.name;
+  CURM = m.name;
+  $('h-sub').textContent = (m.plan || NOCOURSE) + ' / 残り ' + m.left + '回';
+  $('h-plan').value = m.plan || '';
+  $('h-left').value = m.left;
+  $('h-list').innerHTML = '<div class="sub">読み込み中…</div>';
+  srv('getHistory', [m.name], list => {
+    $('h-list').innerHTML = list.map(x => visitCard(x, false)).join('') || '<div class="sub">まだ記録がありません</div>';
+  });
+}
+function stepLeft(n) { $('h-left').value = Math.max(0, (Number(v('h-left')) || 0) + n); }
+function saveMember() {
+  if (!CURM) return;
+  const left = Number(v('h-left'));
+  if (!isFinite(left) || left < 0) return toast('残り回数は0以上の数で入れてね');
+  const b = $('h-save'); b.disabled = true;
+  srv('updateMember', [{ name: CURM, plan: v('h-plan'), left: left }], d => {
+    b.disabled = false;
+    render(d);
+    const m = d.members.find(x => x.name === CURM);
+    if (m) $('h-sub').textContent = (m.plan || NOCOURSE) + ' / 残り ' + m.left + '回';
+    toast('会員情報を保存しました');
+  }, (e, h) => { b.disabled = false; if (!h) toast('失敗: ' + msgOf(e)); });
+}
+function reloadHistory() {
+  if (!CURM) return;
+  srv('getHistory', [CURM], list => {
+    $('h-list').innerHTML = list.map(x => visitCard(x, false)).join('') || '<div class="sub">まだ記録がありません</div>';
+  });
+}
+function deleteMember() {
+  if (!CURM) return;
+  if (!confirm('「' + CURM + '」さんを会員から削除します。\n来店記録・入金の履歴は残ります。よろしいですか？')) return;
+  srv('deleteMember', [CURM], d => { render(d); closeHistory(); toast('削除しました'); });
+}
+function closeHistory() {
+  $('p-hist').classList.remove('on');
+  $('p-mem').classList.add('on');
+  $('title').textContent = '会員';
+}
+
+/* ---------- 起動 ---------- */
+if (KEY) boot();
+else BR.ask('get', '', (val, got) => { if (got && val) { KEY = val; boot(); } else showLogin(''); });
+</script>
+</body>
+</html>
